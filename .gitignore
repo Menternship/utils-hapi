@@ -1,0 +1,12 @@
+.DS_Store
+node_modules
+npm-debug.log
+dist
+.env
+auth
+controllers
+flash
+plugins
+repos
+request
+server
