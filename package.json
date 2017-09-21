@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepublish": "npm run build && npm run type",
     "build": "babel src -d ./",
-    "flowtyped": "flow-typed"
+    "type": "flow-copy-source src ./"
   },
   "repository": {
     "type": "git",
