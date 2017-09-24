@@ -1,8 +1,6 @@
 // @flow
 import joi from 'joi';
 
-const { API_PREFIX = '' } = process.env; 
-
 type $method = 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE';
 
 type $request<$payload, $query, $params> = {
@@ -45,7 +43,7 @@ export function defaultController<$payload, $query, $params>(
     options,
     {
       path(path) {
-        return `${API_PREFIX}/${pathPrefix}${path}`;
+        return `${process.env.API_PREFIX || ''}/${pathPrefix}${path}`;
       },
       config(config = {}) {
         let validate;
@@ -69,6 +67,6 @@ export function defaultController<$payload, $query, $params>(
   );
 }
 
-export default massDefaultController = (pathPrefix: string, controllers: Array<*>) => {
+export default function massDefaultController(pathPrefix: string, controllers: Array<*>){
   return controllers.map(controllerOptions => defaultController(pathPrefix, controllerOptions));
-};
+}

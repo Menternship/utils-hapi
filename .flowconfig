@@ -1,5 +1,15 @@
+[libs]
+flow-typed
 [ignore]
 .*/kefir/.*
+.*/bcryptjs/.*
+<PROJECT_ROOT>/auth.*
+<PROJECT_ROOT>/controllers.*
+<PROJECT_ROOT>/flash.*
+<PROJECT_ROOT>/plugins.*
+<PROJECT_ROOT>/repos.*
+<PROJECT_ROOT>/request.*
+<PROJECT_ROOT>/server.*
 [options]
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable

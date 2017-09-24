@@ -3,13 +3,6 @@ import pgp from 'pg-promise';
 import blandSquel from 'squel';
 import { camelizeKeys as ck, decamelizeKeys } from 'humps';
 
-const {
-  PG_DATABASE: database,
-  PG_USER: user,
-  PG_PASSWORD: password,
-  PG_HOST: host,
-  PG_PORT: port,
-} = process.env;
 const camelizeKeys = (values) => {
   return ck(values);
 };
@@ -59,9 +52,8 @@ const applyOptions = (query, options = {}) => {
   }
 };
 
-export const connection = { database, user, password, host, port };
 export const squel = blandSquel.useFlavour('postgres');
-export const predb = pgp()(connection);
+export const predb = pgp()(process.env.DATABASE_URL);
 
 export const db = {
   none(query: string, values?: any[]) {
@@ -93,24 +85,24 @@ const insertValue = (value: *) => {
   return value;
 };
 
-export default class Repo <X> {
+export default class Repo <X: any> {
   tableName: string;
   db: Object;
-  Model: ?X;
+  Model: ?Class<X>;
   constructor(tableName: string, Model?: Class<X>) {
     this.tableName = tableName;
     this.db = db;
     this.Model = Model;
   }
-  modelTransform = (obj)=>{
+  modelTransform = (obj: Object)=>{
     if (this.Model) {
-      return new Model(obj);
+      return new this.Model(obj);
     }
     return obj;
   }
-  massModelTransform = (objs)=>{
+  massModelTransform = (objs: Object[])=>{
     if (this.Model) {
-      return objs.map((obj)=>new Model(obj));
+      return objs.map(this.modelTransform);
     }
     return objs;
   }
@@ -126,6 +118,7 @@ export default class Repo <X> {
         insertValue(params[key]),
       );
     });
+    // $FlowFixMe
     if (!options || !(preoptions.skipTime || preoptions.justCreate)) {
       ['created_at', 'updated_at'].forEach((key) => {
         initialQuery

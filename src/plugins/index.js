@@ -6,9 +6,9 @@ import vision from 'vision';
 import addCorsHeaders from 'hapi-cors-headers';
 import auth from '../auth';
 
-function register(server, options, next) {
-  auth(server);
+function register(server: Object, options: Object, next: Function) {
   server.register([
+    auth,
     {
       register: hapiSwagger,
       options: {
@@ -22,7 +22,7 @@ function register(server, options, next) {
         },
       },
     },
-    hapiPino,
+    // hapiPino,
     vision,
     inert,
   ]);
@@ -30,7 +30,7 @@ function register(server, options, next) {
   next();
 }
 register.attributes = {
-  name: '@ps/hapi-utils/plugins',
+  name: 'hapi-utils-plugins',
   version: '1.0.0',
 };
 
