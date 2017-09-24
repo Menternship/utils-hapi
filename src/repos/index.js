@@ -56,7 +56,7 @@ const initOptions = {
 };
 
 export const squel = blandSquel.useFlavour('postgres');
-export const predb = pgp(initOptions)(process.env.DATABASE_URL || );
+export const predb = pgp(initOptions)(process.env.DATABASE_URL);
 
 export const db = {
   none(query: string, values?: any[]) {
