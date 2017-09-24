@@ -1,6 +1,6 @@
 {
   "name": "menternship-utils-hapi",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,10 @@
     "url": "https://github.com/Menternship/utils-hapi/issues"
   },
   "jest": {
-    "roots": ["<rootDir>/src/", "<rootDir>/tests/"]
+    "roots": [
+      "<rootDir>/src/",
+      "<rootDir>/tests/"
+    ]
   },
   "dependencies": {
     "amqplib": "^0.5.1",
