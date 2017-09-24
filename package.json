@@ -38,6 +38,7 @@
     "keymirror-flow": "^1.0.0",
     "moment": "^2.18.1",
     "pg-promise": "^5.6.4",
+    "pubsub-js": "^1.5.7",
     "squel": "^5.8.0",
     "uuid": "^3.1.0",
     "vision": "^4.1.1"
