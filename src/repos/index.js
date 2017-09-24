@@ -1,11 +1,8 @@
 // @flow
 import pgp from 'pg-promise';
 import blandSquel from 'squel';
-import { camelizeKeys as ck, decamelizeKeys } from 'humps';
-
-const camelizeKeys = (values) => {
-  return ck(values);
-};
+import { decamelizeKeys } from 'humps';
+import camelizeColumns from './camelize';
 
 const getWhere = (params: Object, key: string) => {
   let operator;
@@ -52,8 +49,14 @@ const applyOptions = (query, options = {}) => {
   }
 };
 
+const initOptions = {
+  receive: (data) => {
+    camelizeColumns(data);
+  },
+};
+
 export const squel = blandSquel.useFlavour('postgres');
-export const predb = pgp()(process.env.DATABASE_URL);
+export const predb = pgp(initOptions)(process.env.DATABASE_URL || );
 
 export const db = {
   none(query: string, values?: any[]) {
@@ -62,19 +65,19 @@ export const db = {
   },
   one(query: string, values?: any[]) {
     console.log('one', query, values);
-    return predb.one(query, values).then(camelizeKeys);
+    return predb.one(query, values);
   },
   oneOrNone(query: string, values?: any[]) {
     console.log('oneOrNone', query, values);
-    return predb.oneOrNone(query, values).then(camelizeKeys);
+    return predb.oneOrNone(query, values);
   },
   many(query: string, values?: any[]) {
     console.log('many', query, values);
-    return predb.many(query, values).then(camelizeKeys);
+    return predb.many(query, values);
   },
   manyOrNone(query: string, values?: any[]) {
     console.log('manyOrNone', query, values);
-    return predb.manyOrNone(query, values).then(camelizeKeys);
+    return predb.manyOrNone(query, values);
   },
 };
 
