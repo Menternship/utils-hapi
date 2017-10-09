@@ -3,7 +3,7 @@ import pgp from 'pg-promise';
 
 
 export function recursiveCamelize(val) {
-  if (typeof val === 'object') {
+  if (val && typeof val === 'object') {
     if (Array.isArray(val)) {
       val.forEach((v, i) => {
         val[i] = recursiveCamelize(v);
@@ -17,7 +17,7 @@ export function recursiveCamelize(val) {
   return val;
 }
 
-export function camelizeColumns(data) {
+export default function camelizeColumns(data) {
   const tmp = data[0];
   Object.keys(tmp).forEach((prop) => {
     const camel = pgp.utils.camelize(prop);

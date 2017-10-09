@@ -59,25 +59,25 @@ export const squel = blandSquel.useFlavour('postgres');
 export const predb = pgp(initOptions)(process.env.NODE_ENV === 'TEST' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL);
 
 export const db = {
-  none(query: string, values?: any[]) {
+  none(query: string, values?: any[], t?: any) {
     console.log('none', query, values);
-    return predb.none(query, values);
+    return (t || predb).none(query, values);
   },
-  one(query: string, values?: any[]) {
+  one(query: string, values?: any[], t?: any) {
     console.log('one', query, values);
-    return predb.one(query, values);
+    return (t || predb).one(query, values);
   },
-  oneOrNone(query: string, values?: any[]) {
+  oneOrNone(query: string, values?: any[], t?: any) {
     console.log('oneOrNone', query, values);
-    return predb.oneOrNone(query, values);
+    return (t || predb).oneOrNone(query, values);
   },
-  many(query: string, values?: any[]) {
+  many(query: string, values?: any[], t?: any) {
     console.log('many', query, values);
-    return predb.many(query, values);
+    return (t || predb).many(query, values);
   },
-  manyOrNone(query: string, values?: any[]) {
+  manyOrNone(query: string, values?: any[], t?: any) {
     console.log('manyOrNone', query, values);
-    return predb.manyOrNone(query, values);
+    return (t || predb).manyOrNone(query, values);
   },
 };
 
@@ -109,7 +109,7 @@ export default class Repo <X: any> {
     }
     return objs;
   }
-  insert = (preparams?: Object = {}, preoptions?: Object) => {
+  insert = (preparams?: Object = {}, preoptions?: Object, t?: any) => {
     const params = decamelizeKeys(preparams);
     const options = decamelizeKeys(preoptions);
     const initialQuery = squel.insert()
@@ -132,11 +132,11 @@ export default class Repo <X: any> {
       initialQuery.set('created_at', squel.str('NOW()'));
     }
     const { text, values } = initialQuery.toParam();
-    return db.one(`${text} RETURNING id`, values)
+    return db.one(`${text} RETURNING id`, values, t)
     .then((r)=>r.id);
   };
 
-  update = (prefilters: Object, preparams: Object) => {
+  update = (prefilters: Object, preparams: Object, t?: any) => {
     const params = decamelizeKeys(preparams);
     const filters = decamelizeKeys(prefilters);
     const initialQuery = squel.update()
@@ -147,7 +147,7 @@ export default class Repo <X: any> {
 
     applyWhere(initialQuery, filters);
     const { text, values } = initialQuery.toParam();
-    return db.none(text, values);
+    return db.none(text, values, t);
   }
   _retrieve = (preparams: Object = {}, preoptions?: Object = {}) => {
     const params = decamelizeKeys(preparams);
@@ -158,47 +158,47 @@ export default class Repo <X: any> {
     applyOptions(initialQuery, options);
     return initialQuery.toParam();
   };
-  retrieve = (params: Object, options?: Object) => {
+  retrieve = (params: Object, options?: Object, t?: any) => {
     const { text, values } = this._retrieve(params, options);
-    return db.oneOrNone(text, values).then(this.modelTransform);
+    return db.oneOrNone(text, values, t).then(this.modelTransform);
   }
-  retrieveOne = (params: Object, options?: Object) => {
+  retrieveOne = (params: Object, options?: Object, t?: any) => {
     const { text, values } = this._retrieve(params, options);
-    return db.one(text, values).then(this.modelTransform);
+    return db.one(text, values, t).then(this.modelTransform);
   }
-  retrieveAll = (preparams: Object = {}, options?: Object) => {
+  retrieveAll = (preparams: Object = {}, options?: Object, t?: any) => {
     const params = decamelizeKeys(preparams);
     const initialQuery = squel.select()
     .from(this.tableName);
     applyWhere(initialQuery, params);
     applyOptions(initialQuery, options);
     const { text, values } = initialQuery.toParam();
-    return db.manyOrNone(text, values).then(this.massModelTransform);
+    return db.manyOrNone(text, values, t).then(this.massModelTransform);
   };
 
-  count = (preparams: Object = {}) => {
+  count = (preparams: Object = {}, t?: any) => {
     const params = decamelizeKeys(preparams);
     const initialQuery = squel.select()
     .from(this.tableName)
     .field('count(*)');
     applyWhere(initialQuery, params);
     const { text, values } = initialQuery.toParam();
-    return db.one(text, values).then(({ count }) => count);
+    return db.one(text, values, t).then(({ count }) => count);
   };
-  remove = (prefilters: Object = {}) => {
+  remove = (prefilters: Object = {}, t?: any) => {
     const filters = decamelizeKeys(prefilters);
 
     const initialQuery = squel.delete()
     .from(this.tableName);
     applyWhere(initialQuery, filters);
     const { text, values } = initialQuery.toParam();
-    return db.none(text, values);
+    return db.none(text, values, t);
   }
 
-  reorder = (prefilters: Object, { rawOriginal, rawNext }: {rawOriginal: number, rawNext: number}, ordinalField: string = 'ordinal') => {
+  reorder = (prefilters: Object, { rawOriginal, rawNext }: {rawOriginal: number, rawNext: number}, ordinalField: string = 'ordinal', t?: any) => {
     const filters = decamelizeKeys(prefilters);
     if (rawOriginal > rawNext) {
-      return this.reorderForwards(filters, { rawOriginal, rawNext }, ordinalField);
+      return this.reorderForwards(filters, { rawOriginal, rawNext }, ordinalField, t);
     }
     if (rawOriginal < rawNext) {
       return this.reorderBackwards(filters, { rawOriginal, rawNext }, ordinalField);
@@ -206,7 +206,7 @@ export default class Repo <X: any> {
     return Promise.resolve();
   }
 
-  reorderBackwards = (filters: Object, { rawOriginal, rawNext }: Object, ordinalField: string = 'ordinal') => {
+  reorderBackwards = (filters: Object, { rawOriginal, rawNext }: Object, ordinalField: string = 'ordinal', t?: any) => {
     const original = parseInt(rawOriginal, 10);
     const next = parseInt(rawNext, 10);
     const initialQuery = squel.update()
@@ -220,9 +220,9 @@ export default class Repo <X: any> {
       const operator = Array.isArray(filters[key]) ? ' in ' : ' = ';
       initialQuery.where(`${key}${operator}?`, filters[key]);
     });
-    return db.none(initialQuery.toString());
+    return db.none(initialQuery.toString(), undefined, t);
   }
-  reorderForwards = (filters: Object, { rawOriginal, rawNext }: Object, ordinalField: string = 'ordinal') => {
+  reorderForwards = (filters: Object, { rawOriginal, rawNext }: Object, ordinalField: string = 'ordinal', t?: any) => {
     const original = parseInt(rawOriginal, 10);
     const next = parseInt(rawNext, 10);
     const initialQuery = squel.update()
@@ -236,7 +236,12 @@ export default class Repo <X: any> {
       const operator = Array.isArray(filters[key]) ? ' in ' : ' = ';
       initialQuery.where(`${key}${operator}?`, filters[key]);
     });
-    return db.none(initialQuery.toString());
+    return db.none(initialQuery.toString(), undefined, t);
   }
-
 }
+
+export const createTransaction = (promise: Function) => {
+  return predb.tx((t) => {
+    return promise(t);
+  });
+};
