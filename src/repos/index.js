@@ -10,7 +10,11 @@ const getWhere = (params: Object, key: string) => {
   const firstCharacter = key[0];
   if (firstCharacter === '!') {
     displayKey = key.slice(1);
-    operator = ' <> ';
+    if (Array.isArray(params[key])) {
+      operator = ' NOT IN ';
+    } else {
+      operator = ' <> ';
+    }
   } else if (firstCharacter === '>') {
     displayKey = key.slice(1);
     operator = ' > ';
@@ -165,6 +169,10 @@ export default class Repo <X: any> {
   retrieveOne = (params: Object, options?: Object, t?: any) => {
     const { text, values } = this._retrieve(params, options);
     return db.one(text, values, t).then(this.modelTransform);
+  }
+  retrieveOne = (params: Object, options?: Object, t?: any) => {
+    const { text, values } = this._retrieve(params, options);
+    return db.none(text, values, t).then(this.modelTransform);
   }
   retrieveAll = (preparams: Object = {}, options?: Object, t?: any) => {
     const params = decamelizeKeys(preparams);
