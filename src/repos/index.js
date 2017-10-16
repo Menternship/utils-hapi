@@ -96,24 +96,34 @@ export default class Repo <X: any> {
   tableName: string;
   db: Object;
   Model: ?Class<X>;
-  constructor(tableName: string, Model?: Class<X>) {
+  options: Object;
+  constructor(tableName: string, Model?: Class<X>, options?: Object = {}) {
     this.tableName = tableName;
     this.db = db;
     this.Model = Model;
+    this.options = options;
   }
-  modelTransform = (obj: Object)=>{
-    if (this.Model) {
+  modelTransform = (obj: Object) => {
+    if (this.Model && obj) {
       return new this.Model(obj);
     }
     return obj;
   }
-  massModelTransform = (objs: Object[])=>{
+  massModelTransformMap = (obj: Object) => {
+    if (obj) {
+      // $FlowFixMe
+      return new this.Model(obj);
+    }
+    return obj;
+  }
+  massModelTransform = (objs: Object[]) => {
     if (this.Model) {
-      return objs.map(this.modelTransform);
+      return objs.map(this.massModelTransformMap);
     }
     return objs;
   }
-  insert = (preparams?: Object = {}, preoptions?: Object, t?: any) => {
+  insert = (preparams?: Object = {}, insertOptions?: Object, t?: any) => {
+    const preoptions = { ...this.options, ...insertOptions };
     const params = decamelizeKeys(preparams);
     const options = decamelizeKeys(preoptions);
     const initialQuery = squel.insert()
@@ -153,7 +163,8 @@ export default class Repo <X: any> {
     const { text, values } = initialQuery.toParam();
     return db.none(text, values, t);
   }
-  _retrieve = (preparams: Object = {}, preoptions?: Object = {}) => {
+  _retrieve = (preparams: Object = {}, retrieveOptions?: Object = {}) => {
+    const preoptions = { ...this.options, ...retrieveOptions };
     const params = decamelizeKeys(preparams);
     const options = decamelizeKeys(preoptions);
     const initialQuery = squel.select()
@@ -170,7 +181,7 @@ export default class Repo <X: any> {
     const { text, values } = this._retrieve(params, options);
     return db.one(text, values, t).then(this.modelTransform);
   }
-  retrieveOne = (params: Object, options?: Object, t?: any) => {
+  retrieveNone = (params: Object, options?: Object, t?: any) => {
     const { text, values } = this._retrieve(params, options);
     return db.none(text, values, t).then(this.modelTransform);
   }
@@ -179,7 +190,7 @@ export default class Repo <X: any> {
     const initialQuery = squel.select()
     .from(this.tableName);
     applyWhere(initialQuery, params);
-    applyOptions(initialQuery, options);
+    applyOptions(initialQuery, { ...this.options, ...options });
     const { text, values } = initialQuery.toParam();
     return db.manyOrNone(text, values, t).then(this.massModelTransform);
   };
