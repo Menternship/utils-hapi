@@ -6,4 +6,7 @@ export const types = mirror({
   acceptOffer: 1,
   rejectOffer: 1,
   createApplication: 1,
+  internAwaitingApproval: 1,
+  internCompleted: 1,
+  internFired: 1,
 });
