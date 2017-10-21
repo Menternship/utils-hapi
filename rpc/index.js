@@ -26,7 +26,9 @@ var pkg = require(process.env.PWD + '/package.json');
 
 var types = exports.types = (0, _keymirrorFlow2.default)({
   CREATE_USER: 1,
-  GET_LOGIN_TOKEN: 1
+  GET_LOGIN_TOKEN: 1,
+  SEND_EMAIL: 1,
+  GET_USERS: 1
 });
 
 var getPlugin = exports.getPlugin = function getPlugin() {

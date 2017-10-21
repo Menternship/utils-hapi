@@ -9,6 +9,8 @@ const pkg = require(process.env.PWD + '/package.json');
 export const types = mirror({
   CREATE_USER: 1,
   GET_LOGIN_TOKEN: 1,
+  SEND_EMAIL: 1,
+  GET_USERS: 1,
 });
 
 export const getPlugin = () => {

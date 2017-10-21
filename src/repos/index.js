@@ -60,27 +60,33 @@ const initOptions = {
 };
 
 export const squel = blandSquel.useFlavour('postgres');
-export const predb = pgp(initOptions)(process.env.NODE_ENV === 'TEST' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL);
+export const predb = pgp(initOptions)(process.env.NODE_ENV === 'test' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL);
+
+const consoleMessage = (...args) => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(...args);
+  }
+};
 
 export const db = {
   none(query: string, values?: any[], t?: any) {
-    console.log('none', query, values);
+    consoleMessage('none', query, values);
     return (t || predb).none(query, values);
   },
   one(query: string, values?: any[], t?: any) {
-    console.log('one', query, values);
+    consoleMessage('one', query, values);
     return (t || predb).one(query, values);
   },
   oneOrNone(query: string, values?: any[], t?: any) {
-    console.log('oneOrNone', query, values);
+    consoleMessage('oneOrNone', query, values);
     return (t || predb).oneOrNone(query, values);
   },
   many(query: string, values?: any[], t?: any) {
-    console.log('many', query, values);
+    consoleMessage('many', query, values);
     return (t || predb).many(query, values);
   },
   manyOrNone(query: string, values?: any[], t?: any) {
-    console.log('manyOrNone', query, values);
+    consoleMessage('manyOrNone', query, values);
     return (t || predb).manyOrNone(query, values);
   },
 };
@@ -135,7 +141,6 @@ export default class Repo <X: any> {
         insertValue(params[key]),
       );
     });
-    // $FlowFixMe
     if (!options || !(preoptions.skipTime || preoptions.justCreate)) {
       ['created_at', 'updated_at'].forEach((key) => {
         initialQuery
@@ -147,7 +152,7 @@ export default class Repo <X: any> {
     }
     const { text, values } = initialQuery.toParam();
     return db.one(`${text} RETURNING id`, values, t)
-    .then((r)=>r.id);
+    .then(r => r.id);
   };
 
   update = (prefilters: Object, preparams: Object, t?: any) => {
@@ -185,14 +190,14 @@ export default class Repo <X: any> {
     const { text, values } = this._retrieve(params, options);
     return db.none(text, values, t).then(this.modelTransform);
   }
-  retrieveAll = (preparams: Object = {}, options?: Object, t?: any) => {
+  retrieveAll = (preparams: Object = {}, options?: Object = {}, t?: any) => {
     const params = decamelizeKeys(preparams);
     const initialQuery = squel.select()
     .from(this.tableName);
     applyWhere(initialQuery, params);
     applyOptions(initialQuery, { ...this.options, ...options });
     const { text, values } = initialQuery.toParam();
-    return db.manyOrNone(text, values, t).then(this.massModelTransform);
+    return db.manyOrNone(text, values, t).then(options.transform || this.massModelTransform);
   };
 
   count = (preparams: Object = {}, t?: any) => {
